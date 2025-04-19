@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Work Session Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f4f4f9;
+      color: #333;
+      display: flex;
+      min-height: 100vh;
+      flex-direction: row;
+    }
+
+    .sidebar {
+      width: 20%;
+      background: #fff;
+      padding: 30px 20px;
+      border-right: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      font-size: 0.95em;
+      color: #666;
+      box-shadow: inset -1px 0 0 #e0e0e0;
+    }
+
+    .rightbar {
+      width: 20%;
+      background: #fff;
+      padding: 30px 20px;
+      border-left: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #444;
+      font-size: 0.9em;
+      box-shadow: inset 1px 0 0 #e0e0e0;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 2.5em;
+    }
+
+    .timer {
+      font-size: 2.2em;
+      margin: 20px 0;
+      letter-spacing: 1px;
+    }
+
+    button {
+      background: #2c3e50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #34495e;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      width: 260px;
+    }
+
+    .session-list {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 30px;
+    }
+
+    .session {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-left: 5px solid #2c3e50;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 6px;
+    }
+
+    .session-details {
+      font-size: 0.95em;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      color: white;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #c0392b;
+    }
+
+    .quote {
+      font-style: italic;
+      line-height: 1.4em;
+    }
+
+    .session-count {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+
+    .auth-form {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      width: 350px;
+      margin: 50px auto;
+      text-align: center;
+    }
+
+    .auth-form h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    .auth-form input {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+    }
+
+    .auth-form button {
+      width: 100%;
+      margin: 15px 0 10px;
+    }
+
+    .auth-toggle {
+      background: none;
+      border: none;
+      color: #3498db;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+
+    .auth-toggle:hover {
+      color: #2980b9;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .user-info {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      margin-top: 10px;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="quote" id="quote">
+      "Discipline is the bridge between goals and accomplishment."
+    </div>
+    <div class="user-info" id="userInfo"></div>
+  </div>
+
+  <div class="main">
+    <!-- Authentication Forms -->
+    <div id="authContainer">
+      <div class="auth-form" id="loginForm">
+        <h2>Login</h2>
+        <div class="error-message" id="loginError"></div>
+        <input type="text" id="loginUsername" placeholder="Username" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <button id="loginBtn">Login</button>
+        <button class="auth-toggle" id="showSignup">Need an account? Sign up</button>
+      </div>
+
+      <div class="auth-form hidden" id="signupForm">
+        <h2>Sign Up</h2>
+        <div class="error-message" id="signupError"></div>
+        <input type="text" id="signupUsername" placeholder="Username" required>
+        <input type="password" id="signupPassword" placeholder="Password" required>
+        <button id="signupBtn">Sign Up</button>
+        <button class="auth-toggle" id="showLogin">Already have an account? Login</button>
+      </div>
+    </div>
+
+    <!-- Main App Content (hidden by default) -->
+    <div id="appContent" class="hidden">
+      <h1>Work Session Tracker</h1>
+      <div class="timer" id="timerDisplay">00:00:00.00</div>
+
+      <input type="text" id="sessionName" placeholder="Enter session name..." />
+
+      <div>
+        <button id="startBtn">Start Session</button>
+        <button id="stopBtn" disabled>Stop Session</button>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+      </div>
+
+      <div class="session-list" id="sessionList"></div>
+    </div>
+  </div>
+
+  <div class="rightbar">
+    <div>Sessions Recorded</div>
+    <div class="session-count" id="sessionCount">0</div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const timerDisplay = document.getElementById('timerDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const sessionList = document.getElementById('sessionList');
+    const sessionCount = document.getElementById('sessionCount');
+    const sessionNameInput = document.getElementById('sessionName');
+    const quoteBox = document.getElementById('quote');
+    const userInfo = document.getElementById('userInfo');
+    const authContainer = document.getElementById('authContainer');
+    const appContent = document.getElementById('appContent');
+    
+    // Auth elements
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const showSignup = document.getElementById('showSignup');
+    const showLogin = document.getElementById('showLogin');
+    const loginUsername = document.getElementById('loginUsername');
+    const loginPassword = document.getElementById('loginPassword');
+    const signupUsername = document.getElementById('signupUsername');
+    const signupPassword = document.getElementById('signupPassword');
+    const loginError = document.getElementById('loginError');
+    const signupError = document.getElementById('signupError');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // App state
+    let startTime = null;
+    let timerInterval = null;
+    let currentUser = null;
+
+    const quotes = [
+      "“Discipline is the bridge between goals and accomplishment.” – Jim Rohn",
+      "“You don't have to be extreme, just consistent.”",
+      "“Small steps every day.”",
+      "“Focus on progress, not perfection.”",
+      "“The secret of getting ahead is getting started.” – Mark Twain",
+      "“Work hard in silence. Let success make the noise.”",
+    ];
+
+    // Initialize the app
+    init();
+
+    function init() {
+      // Check if user is already logged in from localStorage
+      const loggedInUser = localStorage.getItem('currentUser');
+      if (loggedInUser) {
+        currentUser = JSON.parse(loggedInUser);
+        showApp();
+      } else {
+        showAuth();
+      }
+
+      // Set a random quote
+      quoteBox.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+
+      // Event listeners
+      startBtn.addEventListener('click', startSession);
+      stopBtn.addEventListener('click', stopSession);
+      logoutBtn.addEventListener('click', logout);
+      
+      // Auth event listeners
+      loginBtn.addEventListener('click', login);
+      signupBtn.addEventListener('click', signup);
+      showSignup.addEventListener('click', () => {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+      });
+      showLogin.addEventListener('click', () => {
+        signupForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+      });
+    }
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const milliseconds = Math.floor((ms % 1000) / 10);
+      const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const secs = String(totalSeconds % 60).padStart(2, '0');
+      const msStr = String(milliseconds).padStart(2, '0');
+      return `${hrs}:${mins}:${secs}.${msStr}`;
+    }
+
+    function updateTimer() {
+      const now = new Date();
+      const elapsed = now - startTime;
+      timerDisplay.textContent = formatTime(elapsed);
+    }
+
+    function startSession() {
+      const sessionTitle = sessionNameInput.value.trim();
+      if (!sessionTitle) {
+        alert("Please enter a session name before starting.");
+        return;
+      }
+
+      startTime = new Date();
+      timerInterval = setInterval(updateTimer, 33);
+      updateTimer();
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      sessionNameInput.disabled = true;
+    }
+
+    function stopSession() {
+      const endTime = new Date();
+      const duration = endTime - startTime;
+      clearInterval(timerInterval);
+
+      const sessionTitle = sessionNameInput.value.trim();
+
+      const newSession = {
+        id: Date.now(),
+        name: sessionTitle,
+        start: startTime.toLocaleString(),
+        duration: formatTime(duration)
+      };
+
+      // Save session to current user
+      const users = JSON.parse(localStorage.getItem('users')) || {};
+      if (users[currentUser.username]) {
+        users[currentUser.username].sessions = users[currentUser.username].sessions || [];
+        users[currentUser.username].sessions.push(newSession);
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+
+      renderSessions();
+
+      timerDisplay.textContent = "00:00:00.00";
+      sessionNameInput.value = "";
+      sessionNameInput.disabled = false;
+      startTime = null;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    function renderSessions() {
+      if (!currentUser) return;
+      
+      const users = JSON.parse(localStorage.getItem('users')) || {};
+      const userSessions = users[currentUser.username]?.sessions || [];
+      
+      sessionList.innerHTML = "";
+      userSessions.slice().reverse().forEach(session => {
+        const div = document.createElement('div');
+        div.className = 'session';
+        div.innerHTML = `
+          <div class="session-details">
+            <strong>${session.name}</strong><br/>
+            <span><strong>Start:</strong> ${session.start}</span><br/>
+            <span><strong>Duration:</strong> ${session.duration}</span>
+          </div>
+          <button class="delete-btn" onclick="deleteSession(${session.id})">Delete</button>
+        `;
+        sessionList.appendChild(div);
+      });
+      sessionCount.textContent = userSessions.length;
+    }
+
+    function deleteSession(id) {
+      const users = JSON.parse(localStorage.getItem('users')) || {};
+      if (users[currentUser.username]) {
+        users[currentUser.username].sessions = users[currentUser.username].sessions.filter(s => s.id !== id);
+        localStorage.setItem('users', JSON.stringify(users));
+        renderSessions();
+      }
+    }
+
+    function login() {
+      const username = loginUsername.value.trim();
+      const password = loginPassword.value.trim();
+      
+      if (!username || !password) {
+        loginError.textContent = "Please enter both username and password";
+        return;
+      }
+      
+      const users = JSON.parse(localStorage.getItem('users')) || {};
+      
+      if (!users[username] || users[username].password !== password) {
+        loginError.textContent = "Invalid username or password";
+        return;
+      }
+      
+      currentUser = { username };
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      showApp();
+    }
+
+    function signup() {
+      const username = signupUsername.value.trim();
+      const password = signupPassword.value.trim();
+      
+      if (!username || !password) {
+        signupError.textContent = "Please enter both username and password";
+        return;
+      }
+      
+      if (password.length < 6) {
+        signupError.textContent = "Password must be at least 6 characters";
+        return;
+      }
+      
+      const users = JSON.parse(localStorage.getItem('users')) || {};
+      
+      if (users[username]) {
+        signupError.textContent = "Username already exists";
+        return;
+      }
+      
+      users[username] = { password, sessions: [] };
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      currentUser = { username };
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      showApp();
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('currentUser');
+      showAuth();
+      // Clear form fields
+      loginUsername.value = '';
+      loginPassword.value = '';
+      signupUsername.value = '';
+      signupPassword.value = '';
+      loginError.textContent = '';
+      signupError.textContent = '';
+    }
+
+    function showApp() {
+      authContainer.classList.add('hidden');
+      appContent.classList.remove('hidden');
+      userInfo.textContent = `Logged in as: ${currentUser.username}`;
+      renderSessions();
+    }
+
+    function showAuth() {
+      authContainer.classList.remove('hidden');
+      appContent.classList.add('hidden');
+      userInfo.textContent = '';
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
